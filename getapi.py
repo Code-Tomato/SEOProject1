@@ -16,31 +16,26 @@ conn = engine.connect()
 my_api_key = os.getenv('GENAI_API_KEY')
 genai.api_key = my_api_key
 
-print("Welcome to RoomieMatch! Please enter your details.\n")
+def collect_user_info():
+    print("Welcome to RoomieMatch! Please enter your details.\n")
 
-current_user = {
-    "name": input("What's your name? "),
-    "age": int(input("How old are you? ")),
-    "pronouns": input("What are your pronouns? (e.g., he/him, she/her) "),
-    "hobbies": input("List your hobbies (comma-separated): "),
-    "fav_movies": input("List your favorite movies (comma-separated): "),
-    "music_genres": input("Favorite music genres (comma-separated): "),
-    "music_artists": input("Favorite music artists (comma-separated): "),
-    "instagram": input("Instagram handle (optional): "),
-    "email": input("Your email: "),
-    "cleanliness": input("How would you describe your cleanliness? (e.g., clean, messy, average): "),
-    "sleep_schedule": input("Are you an early bird or a night owl? (early/night): "),
-    "wakeup_time": input("When do you usually wake up? (early/late): "),
-    "contacted": False  
-}
+    current_user = {
+        "name": input("What's your name? "),
+        "age": int(input("How old are you? ")),
+        "pronouns": input("What are your pronouns? (e.g., he/him, she/her) "),
+        "hobbies": input("List your hobbies (comma-separated): "),
+        "fav_movies": input("List your favorite movies (comma-separated): "),
+        "music_genres": input("Favorite music genres (comma-separated): "),
+        "music_artists": input("Favorite music artists (comma-separated): "),
+        "instagram": input("Instagram handle (optional): "),
+        "email": input("Your email: "),
+        "cleanliness": input("How would you describe your cleanliness? (e.g., clean, messy, average): "),
+        "sleep_schedule": input("Are you an early bird or a night owl? (early/night): "),
+        "wakeup_time": input("When do you usually wake up? (early/late): "),
+        "contacted": False  
+    }
 
-id_results=similarity_report(current_user)
-select_query=db.select(students).where(students.c.id.in_(id_results))
-results= conn.execute(select_query).fetchall()
-
-SENDER="roomie.match01@gmail.com" # GET EMAIL, CAN ALSO 
-#RECIEVER=emails # RECIEVE EMAIL LISTS FROM DATABASE
-
+    return current_user
 
 def gemini_api(current_user_prompt, matched_prompt):
     client = genai.Client(
@@ -76,40 +71,6 @@ Provide your output in the following format:
     
     return response.text
     
-    
-current_user_prompt = ""
-current_user_prompt += f"Name: {current_user['name']}\n"
-current_user_prompt += f"Pronoun: {current_user['pronouns']}\n"
-current_user_prompt += f"Hobbies: {current_user['hobbies']}\n"
-current_user_prompt += f"Favorite Movies: {current_user['fav_movies']}\n"
-current_user_prompt += f"Music Genres: {current_user['music_genres']}\n"
-current_user_prompt += f"Favorite Artists: {current_user['music_artists']}\n"
-current_user_prompt += f"Cleanliness: {current_user['cleanliness']}\n"
-current_user_prompt += f"Sleep Schedule: {current_user['sleep_schedule']}\n"
-current_user_prompt += f"Wakeup Time: {current_user['wakeup_time']}\n"
-
-prompts = []
-for row in results:
-    student = row._mapping  # or dict(row) if using older SQLAlchemy
-    prompt_text = ""
-    prompt_text += f"Name: {row['name']}\n"
-    prompt_text += f"Pronouns: {row['pronouns']}\n"
-    prompt_text += f"Hobbies: {row['hobbies']}\n"
-    prompt_text += f"Favorite Movies: {row['fav_movies']}\n"
-    prompt_text += f"Music Genres: {row['music_genres']}\n"
-    prompt_text += f"Favorite Artists: {row['music_artists']}\n"
-    prompt_text += f"Cleanliness: {row['cleanliness']}\n"
-    prompt_text += f"Sleep Schedule: {row['sleep_schedule']}\n"
-    prompt_text += f"Wakeup Time: {row['wakeup_time']}\n\n"
-    
-    prompts.append(prompt_text)
-    
-matched_prompt = ""
-for i, match_text in enumerate(prompts, start=1):
-    matched_prompt += f"{i}.\n{match_text}"
-
-print(gemini_api(current_user_prompt, matched_prompt))
-    
 # API Sends email to receiver from Roomie Email
 def send_mail(RECIEVER):
     message = Mail(
@@ -128,4 +89,48 @@ def send_mail(RECIEVER):
         print(e.message)
 
 
+current_user = collect_user_info()
 
+id_results=similarity_report(current_user)
+select_query=db.select(students).where(students.c.id.in_(id_results))
+results= conn.execute(select_query).fetchall()
+
+current_user_prompt = ""
+current_user_prompt += f"Name: {current_user['name']}\n"
+current_user_prompt += f"Pronoun: {current_user['pronouns']}\n"
+current_user_prompt += f"Hobbies: {current_user['hobbies']}\n"
+current_user_prompt += f"Favorite Movies: {current_user['fav_movies']}\n"
+current_user_prompt += f"Music Genres: {current_user['music_genres']}\n"
+current_user_prompt += f"Favorite Artists: {current_user['music_artists']}\n"
+current_user_prompt += f"Cleanliness: {current_user['cleanliness']}\n"
+current_user_prompt += f"Sleep Schedule: {current_user['sleep_schedule']}\n"
+current_user_prompt += f"Wakeup Time: {current_user['wakeup_time']}\n"
+
+prompts = []
+emails=[]
+for row in results:
+    student = row._mapping  # or dict(row) if using older SQLAlchemy
+    prompt_text = ""
+    prompt_text += f"Name: {row['name']}\n"
+    prompt_text += f"Pronouns: {row['pronouns']}\n"
+    prompt_text += f"Hobbies: {row['hobbies']}\n"
+    prompt_text += f"Favorite Movies: {row['fav_movies']}\n"
+    prompt_text += f"Music Genres: {row['music_genres']}\n"
+    prompt_text += f"Favorite Artists: {row['music_artists']}\n"
+    prompt_text += f"Cleanliness: {row['cleanliness']}\n"
+    prompt_text += f"Sleep Schedule: {row['sleep_schedule']}\n"
+    prompt_text += f"Wakeup Time: {row['wakeup_time']}\n\n"
+    
+    emails.append(row['email'])
+    prompts.append(prompt_text)
+    
+matched_prompt = ""
+for i, match_text in enumerate(prompts, start=1):
+    matched_prompt += f"{i}.\n{match_text}"
+
+print(gemini_api(current_user_prompt, matched_prompt) + "\n")
+
+
+print(emails)
+SENDER="roomie.match01@gmail.com" # GET EMAIL, CAN ALSO 
+RECIEVER=emails # RECIEVE EMAIL LISTS FROM DATABASE
