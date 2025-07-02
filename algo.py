@@ -50,20 +50,3 @@ def similarity_report(user_dict):
     # Return list of top 5 matching user IDs
     return top_5['id'].tolist()
 
-# person1 = {
-#     "name": "Nathan Lemma",
-#     "age": 19,
-#     "pronouns": "he/him",
-#     "hobbies": "Reading, gaming, and hiking.",
-#     "fav_movies": "Inception, The Matrix",
-#     "music_genres": "Lo-fi, Chill",
-#     "music_artists": "Tame Impala, Joji",
-#     "instagram": "@nathanl",
-#     "email": "nathan.lemma@example.com",
-#     "cleanliness": "clean",
-#     "sleep_schedule": "early",
-#     "wakeup_time": "early",
-#     "contacted": False
-# }
-
-# print(similarity_report(person1))

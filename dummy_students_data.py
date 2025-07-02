@@ -907,7 +907,3 @@ conn.execute(insert_query)
 # Print all rows in the students table
 select_query = db.select(students)
 results = conn.execute(select_query).fetchall()
-
-print("Students Table:\n")
-for row in results:
-  print(row._mapping) #dict(row) crashed, ._mapping gives data as a key-value pair
