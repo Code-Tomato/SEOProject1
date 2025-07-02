@@ -12,9 +12,14 @@ from algo import similarity_report
 
 conn = engine.connect()
 
+
 # Set environment variables
 my_api_key = os.getenv('GENAI_API_KEY')
 genai.api_key = my_api_key
+
+client = genai.Client(
+        api_key=my_api_key,
+    )
 
 def collect_user_info():
     print("Welcome to RoomieMatch! Please enter your details.\n")
@@ -38,10 +43,6 @@ def collect_user_info():
     return current_user
 
 def gemini_api(current_user_prompt, matched_prompt):
-    client = genai.Client(
-        api_key=my_api_key,
-    )
-    
     full_prompt = f"""
 You are generating a short summary (around 100 words each) describing the compatibility between the following user and 5 potential roommates.
 
@@ -72,12 +73,12 @@ Provide your output in the following format:
     return response.text
     
 # API Sends email to receiver from Roomie Email
-def send_mail(RECIEVER):
+def send_mail(RECIEVER, Intro):
     message = Mail(
         from_email=SENDER,
         to_emails=RECIEVER,
         subject='Roommate Inquiry',
-        html_content=response.text)
+        html_content=Intro)
     try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
@@ -88,8 +89,33 @@ def send_mail(RECIEVER):
     except Exception as e:
         print(e.message)
 
+current_user = {
+    "name": "Marco",
+    "age": 19,
+    "pronouns": "He/Him",
+    "hobbies": "Gaming, Cooking, Watching TV",
+    "fav_movies": "Shrek, Lego Movie",
+    "music_genres": "Pop, Rock Indie",
+    "music_artists": "Tyler the Creator, Mitski, Billy Joel",
+    "instagram": "",
+    "email": "marcogb1234@gmail.com",
+    "cleanliness": "clean",
+    "sleep_schedule": "early",
+    "wakeup_time": "early",
+    "contacted": False  
+}
 
-current_user = collect_user_info()
+# SQL QUERY INSERT PROBLEMS
+# select_query = db.select(students)
+# results = conn.execute(select_query).fetchall()
+# print(results)
+
+# insert_query = students.insert().values(current_user)
+# conn.execute(insert_query)
+
+# select_query = db.select(students)
+# results = conn.execute(select_query).fetchall()
+
 
 id_results=similarity_report(current_user)
 select_query=db.select(students).where(students.c.id.in_(id_results))
@@ -130,7 +156,28 @@ for i, match_text in enumerate(prompts, start=1):
 
 print(gemini_api(current_user_prompt, matched_prompt) + "\n")
 
+intro = response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        config=types.GenerateContentConfig(
+        system_instruction="You are going to give a quick introduction about myself, its for a potential roommate"
+        ),
+        contents=current_user_prompt
+    )
 
-print(emails)
+reach_out = input("Which possible rommates would you like to reach out to? We will send them an email that introduces you to them" \
+                  "(Insert their bullet point number, Comma Seperated): ")
+
+reach_out_list = reach_out.split(",")
+
+valid_emails = []
+for i in reach_out_list:
+    valid_emails.append(emails[((int)(i)) - 1 ])
+    
+valid_emails= ["marcogb1234@gmail.com", "marcoaguzmanbalcazar@gmail.com"]    
 SENDER="roomie.match01@gmail.com" # GET EMAIL, CAN ALSO 
-RECIEVER=emails # RECIEVE EMAIL LISTS FROM DATABASE
+RECIEVER=valid_emails # Emails to send to
+
+print(intro.text)
+print("Sending emails...")
+for email in RECIEVER:
+    send_mail(email, intro.text)

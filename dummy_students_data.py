@@ -900,7 +900,7 @@ dummy_students = [
 ]
 
 
-conn.execute(students.delete()) #For testing: prints on terminal each time file runs
+conn.execute(students.delete())
 insert_query = students.insert().values(dummy_students)
 conn.execute(insert_query)
 
