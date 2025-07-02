@@ -64,3 +64,13 @@ plt.axis('off')
 plt.colorbar(nodes, label='Cosine Similarity')
 
 plt.show()
+
+# Remove ego user (node 0) from comparison
+similarities.pop(0, None)
+
+# Sort by similarity (descending) and get top 5
+top_matches = sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:5]
+
+print("Top 5 most similar users to ego user:")
+for user_id, score in top_matches:
+    print(f"User {user_id}: similarity {score:.3f}")
