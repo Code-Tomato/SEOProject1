@@ -1,1 +1,2 @@
-# SEOProject1
+# RoomieMatch
+## Making Roommate Matching Easier!
