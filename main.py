@@ -10,8 +10,9 @@ from student_info_db import engine, metadata, students
 import sqlalchemy as db
 from algo import similarity_report
 
+conn = engine.connect() # Connection to Database
+metadata = db.MetaData()
 conn = engine.connect()
-
 
 # Set environment variables
 my_api_key = os.getenv('GENAI_API_KEY')
@@ -44,21 +45,22 @@ def collect_user_info():
 
 def gemini_api(current_user_prompt, matched_prompt):
     full_prompt = f"""
-You are generating a short summary (around 100 words each) describing the compatibility between the following user and 5 potential roommates.
+    You are generating a short summary (around 100 words each) describing the 
+    compatibility between the following user and 5 potential roommates.
 
-User Profile:
-{current_user_prompt}
+    User Profile:
+    {current_user_prompt}
 
-Potential Matches:
-{matched_prompt}
+    Potential Matches:
+    {matched_prompt}
 
-Provide your output in the following format:
+    Provide your output in the following format:
 
-1. [summary of match 1]
-2. [summary of match 2]
-...
-5. [summary of match 5]
-"""
+    1. [summary of match 1]
+    2. [summary of match 2]
+    ...
+    5. [summary of match 5]
+    """
 
     # Specify the model to use and the messages to send
     response = client.models.generate_content(
@@ -72,7 +74,7 @@ Provide your output in the following format:
     
     return response.text
     
-# API Sends email to receiver from Roomie Email
+# SENDGRID API
 def send_mail(RECIEVER, Intro):
     message = Mail(
         from_email=SENDER,
@@ -83,44 +85,42 @@ def send_mail(RECIEVER, Intro):
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
         response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
+        # print(response.status_code)
+        # print(response.body)
+        # print(response.headers)
     except Exception as e:
         print(e.message)
 
-current_user = {
-    "name": "Marco",
-    "age": 19,
-    "pronouns": "He/Him",
-    "hobbies": "Gaming, Cooking, Watching TV",
-    "fav_movies": "Shrek, Lego Movie",
-    "music_genres": "Pop, Rock Indie",
-    "music_artists": "Tyler the Creator, Mitski, Billy Joel",
-    "instagram": "",
-    "email": "marcogb1234@gmail.com",
-    "cleanliness": "clean",
-    "sleep_schedule": "early",
-    "wakeup_time": "early",
-    "contacted": False  
-}
+# Test User
+# current_user = {
+#     "name": "Sophia Lee",
+#     "age": 20,
+#     "pronouns": "She/Her",
+#     "hobbies": "Painting, yoga, reading",
+#     "fav_movies": "Little Women, Spirited Away",
+#     "music_genres": "Indie, Acoustic",
+#     "music_artists": "Phoebe Bridgers, Novo Amor",
+#     "instagram": "@sophia.arts",
+#     "email": "sophia.lee@example.com",
+#     "cleanliness": "average",
+#     "sleep_schedule": "early",
+#     "wakeup_time": "early",
+#     "contacted": False
+# }
 
-# SQL QUERY INSERT PROBLEMS
-# select_query = db.select(students)
-# results = conn.execute(select_query).fetchall()
-# print(results)
+current_user = collect_user_info()
 
-# insert_query = students.insert().values(current_user)
+insert_query= students.insert().values(current_user)
+
+# Execute the query
 # conn.execute(insert_query)
+# print("Current user added to the roommate_db.")
 
-# select_query = db.select(students)
-# results = conn.execute(select_query).fetchall()
-
-
-id_results=similarity_report(current_user)
-select_query=db.select(students).where(students.c.id.in_(id_results))
+id_results=similarity_report(current_user) # Gets roommate ID's that are most similar
+select_query=db.select(students).where(students.c.id.in_(id_results)) # Selects the roommates form Database
 results= conn.execute(select_query).fetchall()
 
+# Turns Dict into String for Gemini
 current_user_prompt = ""
 current_user_prompt += f"Name: {current_user['name']}\n"
 current_user_prompt += f"Pronoun: {current_user['pronouns']}\n"
@@ -132,10 +132,11 @@ current_user_prompt += f"Cleanliness: {current_user['cleanliness']}\n"
 current_user_prompt += f"Sleep Schedule: {current_user['sleep_schedule']}\n"
 current_user_prompt += f"Wakeup Time: {current_user['wakeup_time']}\n"
 
-prompts = []
+# Turns all the possible roommates into a string
 emails=[]
+prompts = []
 for row in results:
-    student = row._mapping  # or dict(row) if using older SQLAlchemy
+    student = row._mapping  
     prompt_text = ""
     prompt_text += f"Name: {row['name']}\n"
     prompt_text += f"Pronouns: {row['pronouns']}\n"
@@ -149,21 +150,15 @@ for row in results:
     
     emails.append(row['email'])
     prompts.append(prompt_text)
-    
+
 matched_prompt = ""
 for i, match_text in enumerate(prompts, start=1):
     matched_prompt += f"{i}.\n{match_text}"
 
-print(gemini_api(current_user_prompt, matched_prompt) + "\n")
+print(gemini_api(current_user_prompt, matched_prompt) + "\n") # Prints summary of possible rommates
 
-intro = response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        config=types.GenerateContentConfig(
-        system_instruction="You are going to give a quick introduction about myself, its for a potential roommate"
-        ),
-        contents=current_user_prompt
-    )
 
+# ------ EMAILS -------
 reach_out = input("Which possible rommates would you like to reach out to? We will send them an email that introduces you to them" \
                   "(Insert their bullet point number, Comma Seperated): ")
 
@@ -173,11 +168,28 @@ valid_emails = []
 for i in reach_out_list:
     valid_emails.append(emails[((int)(i)) - 1 ])
     
-valid_emails= ["marcogb1234@gmail.com", "marcoaguzmanbalcazar@gmail.com"]    
-SENDER="roomie.match01@gmail.com" # GET EMAIL, CAN ALSO 
-RECIEVER=valid_emails # Emails to send to
+# Test Emails for the moment
+# valid_emails= ["marcogb1234@gmail.com", "marcoaguzmanbalcazar@gmail.com"]    
+SENDER="roomie.match01@gmail.com" # RoomieMatch Email
+RECIEVER=valid_emails 
 
-print(intro.text)
+# Call on Gemini API to create an intro for the User
+intro = response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        config=types.GenerateContentConfig(
+        system_instruction="You are going to give a quick introduction about myself, its for a potential roommate"
+        ),
+        contents=current_user_prompt
+    )
+
+print("\n" + intro.text)
 print("Sending emails...")
 for email in RECIEVER:
     send_mail(email, intro.text)
+    
+# select_query = db.select(students)
+# results = conn.execute(select_query).fetchall()
+
+# # Print the results
+# for row in results:
+#     print(dict(row._mapping))

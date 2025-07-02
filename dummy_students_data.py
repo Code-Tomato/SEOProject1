@@ -899,10 +899,12 @@ dummy_students = [
     }
 ]
 
-
-conn.execute(students.delete())
-insert_query = students.insert().values(dummy_students)
-conn.execute(insert_query)
+for student in dummy_students:
+    insert_query = students.insert().values(student)
+    try:
+        conn.execute(insert_query)
+    except db.exc.IntegrityError:
+        pass
 
 # Print all rows in the students table
 select_query = db.select(students)

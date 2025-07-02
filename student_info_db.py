@@ -16,7 +16,7 @@ students = db.Table('students', metadata,
   db.Column('music_genres', db.String, nullable=False),
   db.Column('music_artists', db.String, nullable=False),
   db.Column('instagram', db.String),
-  db.Column('email', db.String, unique=True, nullable=False),
+  db.Column('email', db.String, unique=True, nullable=False), # This is casuing problem since some students may have unqinue
   db.Column('cleanliness', db.String, nullable=False),
   db.Column('sleep_schedule', db.String, nullable=False),
   db.Column('wakeup_time', db.String, nullable=False),
