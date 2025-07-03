@@ -91,23 +91,23 @@ def send_mail(RECIEVER, Intro):
     except Exception as e:
         print(e.message)
 
-current_user = {
-    "name": "Sophia Lee",
-    "age": 20,
-    "pronouns": "She/Her",
-    "hobbies": "Painting, yoga, reading",
-    "fav_movies": "Little Women, Spirited Away",
-    "music_genres": "Indie, Acoustic",
-    "music_artists": "Phoebe Bridgers, Novo Amor",
-    "instagram": "@sophia.arts",
-    "email": "sophia.lee@example.com",
-    "cleanliness": "average",
-    "sleep_schedule": "early",
-    "wakeup_time": "early",
-    "contacted": False
-}
+# current_user = {
+#     "name": "Sophia Lee",
+#     "age": 20,
+#     "pronouns": "She/Her",
+#     "hobbies": "Painting, yoga, reading",
+#     "fav_movies": "Little Women, Spirited Away",
+#     "music_genres": "Indie, Acoustic",
+#     "music_artists": "Phoebe Bridgers, Novo Amor",
+#     "instagram": "@sophia.arts",
+#     "email": "sophia.lee@example.com",
+#     "cleanliness": "average",
+#     "sleep_schedule": "early",
+#     "wakeup_time": "early",
+#     "contacted": False
+# }
 
-# current_user = collect_user_info()
+current_user = collect_user_info()
 
 insert_query= students.insert().values(current_user)
 
