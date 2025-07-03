@@ -169,7 +169,7 @@ for i in reach_out_list:
     valid_emails.append(emails[((int)(i)) - 1 ])
     
 # Test Emails for the moment
-# valid_emails= ["marcogb1234@gmail.com", "marcoaguzmanbalcazar@gmail.com"]    
+valid_emails= ["marcogb1234@gmail.com", "marcoaguzmanbalcazar@gmail.com"]    
 SENDER="roomie.match01@gmail.com" # RoomieMatch Email
 RECIEVER=valid_emails 
 
@@ -181,6 +181,7 @@ intro = response = client.models.generate_content(
         ),
         contents=current_user_prompt
     )
+
 
 print("\n" + intro.text)
 print("Sending emails...")
