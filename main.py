@@ -91,22 +91,6 @@ def send_mail(RECIEVER, Intro):
     except Exception as e:
         print(e.message)
 
-# current_user = {
-#     "name": "Sophia Lee",
-#     "age": 20,
-#     "pronouns": "She/Her",
-#     "hobbies": "Painting, yoga, reading",
-#     "fav_movies": "Little Women, Spirited Away",
-#     "music_genres": "Indie, Acoustic",
-#     "music_artists": "Phoebe Bridgers, Novo Amor",
-#     "instagram": "@sophia.arts",
-#     "email": "sophia.lee@example.com",
-#     "cleanliness": "average",
-#     "sleep_schedule": "early",
-#     "wakeup_time": "early",
-#     "contacted": False
-# }
-
 current_user = collect_user_info()
 
 insert_query= students.insert().values(current_user)
@@ -156,6 +140,7 @@ for i, match_text in enumerate(prompts, start=1):
 
 print(gemini_api(current_user_prompt, matched_prompt) + "\n") # Prints summary of possible rommates
 
+print("-----------------------------------------------\n")
 
 # ------ EMAILS -------
 reach_out = input("Which possible rommates would you like to reach out to? We will send them an email that introduces you to them" \
